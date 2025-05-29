@@ -27,6 +27,7 @@ class ImageViewer {
         this.singleModeButtons = document.querySelectorAll('#singleModeButton');
         this.twoSideModeButtons = document.querySelectorAll('#twoSideModeButton');
         this.directionButtons = document.querySelectorAll('#directionButton');
+        this.dupFirstButtons = document.querySelectorAll('#dupFirstButton');
     }
 
     createNewTab() {
@@ -36,7 +37,8 @@ class ImageViewer {
             currentIndex: 0,
             showGifsOnly: false,
             isTwoSideMode: false,
-            isRightToLeft: true
+            isRightToLeft: true,
+            dupFirst: false
         };
         this.tabs.set(tabId, tabData);
 
@@ -74,6 +76,11 @@ class ImageViewer {
         });
         this.twoSideModeButtons.forEach(button => {
             button.classList.toggle('active', tabData.isTwoSideMode);
+        });
+
+        // Update dupFirst button
+        this.dupFirstButtons.forEach(button => {
+            button.classList.toggle('active', tabData.dupFirst);
         });
 
         // Display images
@@ -121,6 +128,13 @@ class ImageViewer {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.toggleReadingDirection();
+            });
+        });
+
+        this.dupFirstButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleDupFirst();
             });
         });
 
@@ -305,6 +319,21 @@ class ImageViewer {
         this.updateImageLayout();
     }
 
+    toggleDupFirst() {
+        const tabData = this.getCurrentTabData();
+        tabData.dupFirst = !tabData.dupFirst;
+
+        // Update all dupFirst buttons
+        this.dupFirstButtons.forEach(button => {
+            button.classList.toggle('active', tabData.dupFirst);
+        });
+
+        // Refresh display if in fullscreen
+        if (this.fullscreenView.classList.contains('active')) {
+            this.showImage(tabData.currentIndex);
+        }
+    }
+
     toggleGifFilter() {
         const tabData = this.getCurrentTabData();
         tabData.showGifsOnly = this.gifOnlyToggle.checked;
@@ -329,19 +358,26 @@ class ImageViewer {
             };
 
             if (tabData.isTwoSideMode) {
-                if (tabData.isRightToLeft) {
+                if (tabData.dupFirst && index === 0) {
+                    // Duplicate first image for both sides
                     this.fullscreenImage.src = getImageSrc(image);
-                    if (index + 1 < filteredImages.length) {
-                        this.fullscreenImage2.src = getImageSrc(filteredImages[index + 1]);
-                    } else {
-                        this.fullscreenImage2.src = '';
-                    }
-                } else {
                     this.fullscreenImage2.src = getImageSrc(image);
-                    if (index + 1 < filteredImages.length) {
-                        this.fullscreenImage.src = getImageSrc(filteredImages[index + 1]);
+                } else {
+                    // Normal two-page spread
+                    if (tabData.isRightToLeft) {
+                        this.fullscreenImage.src = getImageSrc(image);
+                        if (index + 1 < filteredImages.length) {
+                            this.fullscreenImage2.src = getImageSrc(filteredImages[index + 1]);
+                        } else {
+                            this.fullscreenImage2.src = '';
+                        }
                     } else {
-                        this.fullscreenImage.src = '';
+                        this.fullscreenImage2.src = getImageSrc(image);
+                        if (index + 1 < filteredImages.length) {
+                            this.fullscreenImage.src = getImageSrc(filteredImages[index + 1]);
+                        } else {
+                            this.fullscreenImage.src = '';
+                        }
                     }
                 }
             } else {
@@ -360,12 +396,28 @@ class ImageViewer {
             ? tabData.images.filter(img => img.type === 'image/gif')
             : tabData.images;
 
-        const step = tabData.isTwoSideMode ? 2 : 1;
-        const newIndex = Math.max(0, tabData.currentIndex - step);
-
-        // Only show the image if we're not at the beginning
-        if (newIndex !== tabData.currentIndex) {
-            this.showImage(newIndex);
+        if (tabData.isTwoSideMode) {
+            if (tabData.dupFirst) {
+                if (tabData.currentIndex === 1) {
+                    // From image[1] + image[2], go back to duplicate first image
+                    this.showImage(0);
+                } else if (tabData.currentIndex > 1) {
+                    // Normal 2-page step back
+                    const newIndex = tabData.currentIndex - 2;
+                    this.showImage(Math.max(1, newIndex));
+                }
+            } else {
+                const step = 2;
+                const newIndex = Math.max(0, tabData.currentIndex - step);
+                if (newIndex !== tabData.currentIndex) {
+                    this.showImage(newIndex);
+                }
+            }
+        } else {
+            const newIndex = Math.max(0, tabData.currentIndex - 1);
+            if (newIndex !== tabData.currentIndex) {
+                this.showImage(newIndex);
+            }
         }
     }
 
@@ -375,13 +427,31 @@ class ImageViewer {
             ? tabData.images.filter(img => img.type === 'image/gif')
             : tabData.images;
 
-        const step = tabData.isTwoSideMode ? 2 : 1;
-        const maxIndex = filteredImages.length - (tabData.isTwoSideMode ? 2 : 1);
-        const newIndex = Math.min(maxIndex, tabData.currentIndex + step);
-
-        // Only show the image if we're not at the end
-        if (newIndex !== tabData.currentIndex) {
-            this.showImage(newIndex);
+        if (tabData.isTwoSideMode) {
+            if (tabData.dupFirst) {
+                if (tabData.currentIndex === 0) {
+                    // From duplicate first image, go to show image[1] + image[2]
+                    this.showImage(1);
+                } else {
+                    // Normal 2-page step from other pages
+                    const newIndex = tabData.currentIndex + 2;
+                    if (newIndex < filteredImages.length) {
+                        this.showImage(newIndex);
+                    }
+                }
+            } else {
+                const step = 2;
+                const maxIndex = filteredImages.length - 2;
+                const newIndex = Math.min(maxIndex, tabData.currentIndex + step);
+                if (newIndex !== tabData.currentIndex && newIndex >= 0) {
+                    this.showImage(newIndex);
+                }
+            }
+        } else {
+            const newIndex = tabData.currentIndex + 1;
+            if (newIndex < filteredImages.length) {
+                this.showImage(newIndex);
+            }
         }
     }
 
