@@ -97,6 +97,11 @@ class ImageViewer {
             button.classList.toggle('active', tabData.dupFirst);
         });
 
+        // Update fullscreen view elements to match the tab's view mode state
+        this.fullscreenImage.classList.toggle('single', !tabData.isTwoSideMode);
+        this.fullscreenImage2.style.display = tabData.isTwoSideMode ? 'block' : 'none';
+        this.updateImageLayout();
+
         // Display images
         this.displayImageGrid();
     }
