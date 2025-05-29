@@ -77,7 +77,7 @@ class ImageViewer {
         // Update UI state
         this.gifOnlyToggle.checked = tabData.showGifsOnly;
         this.directionButtons.forEach(button => {
-            button.textContent = tabData.isRightToLeft ? 'R→L' : 'L→R';
+            button.textContent = tabData.isRightToLeft ? 'R' : 'L';
         });
 
         // Update view mode
@@ -324,7 +324,7 @@ class ImageViewer {
 
         // Update all direction buttons
         this.directionButtons.forEach(button => {
-            button.textContent = tabData.isRightToLeft ? 'R→L' : 'L→R';
+            button.textContent = tabData.isRightToLeft ? 'R' : 'L';
         });
 
         // Swap the images if in two-side mode
