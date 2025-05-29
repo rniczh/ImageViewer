@@ -29,6 +29,9 @@ class ImageViewer {
         this.gifOnlyToggle = document.getElementById('gifOnlyToggle');
         this.gapControlPanel = document.getElementById('gapControlPanel');
         this.gapSlider = document.getElementById('gapSlider');
+        this.viewModeGroup = document.querySelector('.view-mode-group');
+        this.viewModeToggle = document.getElementById('viewModeToggle');
+        this.navigationToggle = document.getElementById('navigationToggle');
 
         // Get both sets of buttons (in controls and in fullscreen view)
         this.singleModeButtons = document.querySelectorAll('#singleModeButton');
@@ -179,6 +182,9 @@ class ImageViewer {
 
         // Gap control functionality
         this.setupGapControl();
+
+        // Group toggle functionality
+        this.setupGroupToggles();
 
         // Listen for directory opening events
         if (window.electron) {
@@ -659,6 +665,45 @@ class ImageViewer {
         const imagesContainer = document.querySelector('.images-container');
         if (imagesContainer) {
             imagesContainer.style.gap = `${gap}px`;
+        }
+    }
+
+    // Group toggle functionality
+    setupGroupToggles() {
+        // View mode group toggle
+        this.viewModeToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleGroup(this.viewModeGroup, this.viewModeToggle);
+        });
+
+        // Navigation group toggle
+        this.navigationToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleGroup(this.navigationGroup, this.navigationToggle);
+        });
+
+        // Prevent toggle buttons from triggering fullscreen exit
+        this.viewModeToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        this.navigationToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+
+    // Toggle group visibility
+    toggleGroup(group, toggleButton) {
+        const isCollapsed = group.classList.contains('collapsed');
+
+        if (isCollapsed) {
+            // Expand the group
+            group.classList.remove('collapsed');
+            toggleButton.textContent = '◀';
+        } else {
+            // Collapse the group
+            group.classList.add('collapsed');
+            toggleButton.textContent = '▶';
         }
     }
 }

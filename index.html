@@ -207,6 +207,36 @@
             background-color: #4CAF50;
         }
 
+        .group-toggle {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+            min-width: 32px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .group-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.7) !important;
+            color: white !important;
+        }
+
+        .view-mode-group.collapsed,
+        .navigation-group.collapsed {
+            justify-content: flex-end;
+        }
+
+        .view-mode-group.collapsed > *:not(.group-toggle),
+        .navigation-group.collapsed > *:not(.group-toggle) {
+            display: none;
+        }
+
+        .view-mode-group.collapsed .group-toggle,
+        .navigation-group.collapsed .group-toggle {
+            margin-left: auto;
+        }
+
         .gap-control-panel {
             position: fixed;
             top: -60px;
@@ -654,6 +684,7 @@
         </div>
 
         <div class="view-mode-group">
+            <button class="group-toggle" id="viewModeToggle">◀</button>
             <button id="singleModeButton" class="active">1</button>
             <button id="twoSideModeButton">2</button>
             <button id="directionButton">R</button>
@@ -664,6 +695,7 @@
             <img class="fullscreen-image" id="fullscreenImage2" src="" alt="Fullscreen Image 2" style="display: none;">
         </div>
         <div class="navigation-group" id="navigationGroup">
+            <button class="group-toggle" id="navigationToggle">◀</button>
             <button id="prevButton">Previous</button>
             <button id="nextButton">Next</button>
         </div>
