@@ -116,6 +116,32 @@
             text-transform: uppercase;
         }
 
+        .image-item .filename-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            word-break: break-all;
+            line-height: 1.2;
+            max-height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .image-item .filename-label:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
         .fullscreen-view {
             display: none;
             position: fixed;
@@ -157,6 +183,49 @@
         .fullscreen-image.right {
             max-width: 50%;
             margin: 0;
+        }
+
+        .fullscreen-filename-label {
+            position: absolute;
+            bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            max-width: 400px;
+            word-break: break-all;
+            line-height: 1.2;
+            text-align: center;
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .fullscreen-filename-label.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .fullscreen-filename-label:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .fullscreen-filename-label.single {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .fullscreen-filename-label.left {
+            left: 25%;
+            transform: translateX(-50%);
+        }
+
+        .fullscreen-filename-label.right {
+            right: 25%;
+            transform: translateX(50%);
         }
 
         .back-button {
@@ -736,6 +805,10 @@
         <div class="images-container">
             <img class="fullscreen-image" id="fullscreenImage" src="" alt="Fullscreen Image">
             <img class="fullscreen-image" id="fullscreenImage2" src="" alt="Fullscreen Image 2" style="display: none;">
+
+            <!-- Filename labels for fullscreen images -->
+            <div class="fullscreen-filename-label" id="fullscreenFilename1"></div>
+            <div class="fullscreen-filename-label" id="fullscreenFilename2" style="display: none;"></div>
         </div>
         <div class="navigation-group" id="navigationGroup">
             <button class="group-toggle" id="navigationToggle">◀</button>

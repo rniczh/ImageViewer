@@ -25,6 +25,8 @@ class ImageViewer {
         this.fullscreenView = document.getElementById('fullscreenView');
         this.fullscreenImage = document.getElementById('fullscreenImage');
         this.fullscreenImage2 = document.getElementById('fullscreenImage2');
+        this.fullscreenFilename1 = document.getElementById('fullscreenFilename1');
+        this.fullscreenFilename2 = document.getElementById('fullscreenFilename2');
         this.backButton = document.getElementById('backButton');
         this.prevButton = document.getElementById('prevButton');
         this.nextButton = document.getElementById('nextButton');
@@ -55,7 +57,8 @@ class ImageViewer {
             showGifsOnly: false,
             isTwoSideMode: false,
             isRightToLeft: true,
-            dupFirst: false
+            dupFirst: false,
+            showPageNumbers: false
         };
         this.tabs.set(tabId, tabData);
 
@@ -188,6 +191,17 @@ class ImageViewer {
             e.stopPropagation();
         });
 
+        // Prevent clicks on fullscreen filename labels from triggering exit
+        this.fullscreenFilename1.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFullscreenFilenameDisplay();
+        });
+
+        this.fullscreenFilename2.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleFullscreenFilenameDisplay();
+        });
+
         // Gap control functionality
         this.setupGapControl();
 
@@ -307,8 +321,31 @@ class ImageViewer {
             typeBadge.className = 'type-badge';
             typeBadge.textContent = image.type.split('/')[1].toUpperCase();
 
+            // Create filename/page number label
+            const filenameLabel = document.createElement('div');
+            filenameLabel.className = 'filename-label';
+
+            // Display either page number or filename based on tab setting
+            if (tabData.showPageNumbers) {
+                filenameLabel.textContent = `Page ${index + 1}`;
+                filenameLabel.title = `Click to show filename. Current: ${image.name}`;
+            } else {
+                // Remove file extension for cleaner display
+                const nameWithoutExt = image.name.replace(/\.[^/.]+$/, '');
+                filenameLabel.textContent = nameWithoutExt;
+                filenameLabel.title = `Click to show page number. Page ${index + 1}`;
+            }
+
+            // Add click handler to toggle between filename and page number
+            filenameLabel.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent triggering image click
+                tabData.showPageNumbers = !tabData.showPageNumbers;
+                this.displayImageGrid(); // Refresh the grid to update all labels
+            });
+
             div.appendChild(img);
             div.appendChild(typeBadge);
+            div.appendChild(filenameLabel);
             div.addEventListener('click', () => this.showImage(index));
             this.imageGrid.appendChild(div);
         });
@@ -420,6 +457,7 @@ class ImageViewer {
 
             this.fullscreenView.classList.add('active');
             this.updateImageLayout();
+            this.updateFullscreenFilenames(index, filteredImages, tabData);
         }
     }
 
@@ -510,14 +548,26 @@ class ImageViewer {
             if (tabData.isRightToLeft) {
                 this.fullscreenImage.classList.add('right');
                 this.fullscreenImage2.classList.add('left');
+
+                // Update filename label positions
+                this.fullscreenFilename1.className = 'fullscreen-filename-label right';
+                this.fullscreenFilename2.className = 'fullscreen-filename-label left';
             } else {
                 this.fullscreenImage.classList.add('left');
                 this.fullscreenImage2.classList.add('right');
+
+                // Update filename label positions
+                this.fullscreenFilename1.className = 'fullscreen-filename-label left';
+                this.fullscreenFilename2.className = 'fullscreen-filename-label right';
             }
         } else {
             this.fullscreenImage.classList.remove('left', 'right');
             this.fullscreenImage2.classList.remove('left', 'right');
             this.fullscreenImage.classList.add('single');
+
+            // Update filename label position for single mode
+            this.fullscreenFilename1.className = 'fullscreen-filename-label single';
+            this.fullscreenFilename2.className = 'fullscreen-filename-label';
         }
     }
 
@@ -525,6 +575,10 @@ class ImageViewer {
         this.fullscreenView.classList.remove('active');
         this.fullscreenImage.src = '';
         this.fullscreenImage2.src = '';
+        this.fullscreenFilename1.textContent = '';
+        this.fullscreenFilename2.textContent = '';
+        this.fullscreenFilename1.classList.remove('visible');
+        this.fullscreenFilename2.classList.remove('visible');
     }
 
     handleDirectoryFiles(dirPath, files) {
@@ -612,26 +666,43 @@ class ImageViewer {
 
     // Gap control functionality
     setupGapControl() {
-        // Mouse hover events for showing/hiding the gap control panel
+        // Mouse hover events for showing/hiding the gap control panel and filename labels
         let hoverTimeout;
+        let filenameTimeout;
 
         this.fullscreenView.addEventListener('mousemove', (e) => {
             if (this.fullscreenView.classList.contains('active')) {
-                // Show panel when mouse is near top (within 50px)
+                const viewportHeight = window.innerHeight;
+
+                // Show gap panel when mouse is near top (within 50px)
                 if (e.clientY <= 50) {
                     clearTimeout(hoverTimeout);
                     this.gapControlPanel.classList.add('visible');
                 } else if (e.clientY > 100) {
-                    // Hide panel when mouse moves away from top area
+                    // Hide gap panel when mouse moves away from top area
                     clearTimeout(hoverTimeout);
                     hoverTimeout = setTimeout(() => {
                         this.gapControlPanel.classList.remove('visible');
                     }, 500);
                 }
+
+                // Show filename labels when mouse is near bottom (within 80px)
+                if (e.clientY >= viewportHeight - 80) {
+                    clearTimeout(filenameTimeout);
+                    this.fullscreenFilename1.classList.add('visible');
+                    this.fullscreenFilename2.classList.add('visible');
+                } else if (e.clientY < viewportHeight - 120) {
+                    // Hide filename labels when mouse moves away from bottom area
+                    clearTimeout(filenameTimeout);
+                    filenameTimeout = setTimeout(() => {
+                        this.fullscreenFilename1.classList.remove('visible');
+                        this.fullscreenFilename2.classList.remove('visible');
+                    }, 500);
+                }
             }
         });
 
-        // Prevent hiding when hovering over the panel itself
+        // Prevent hiding gap panel when hovering over the panel itself
         this.gapControlPanel.addEventListener('mouseenter', () => {
             clearTimeout(hoverTimeout);
         });
@@ -639,6 +710,29 @@ class ImageViewer {
         this.gapControlPanel.addEventListener('mouseleave', () => {
             hoverTimeout = setTimeout(() => {
                 this.gapControlPanel.classList.remove('visible');
+            }, 300);
+        });
+
+        // Prevent hiding filename labels when hovering over them
+        this.fullscreenFilename1.addEventListener('mouseenter', () => {
+            clearTimeout(filenameTimeout);
+        });
+
+        this.fullscreenFilename1.addEventListener('mouseleave', () => {
+            filenameTimeout = setTimeout(() => {
+                this.fullscreenFilename1.classList.remove('visible');
+                this.fullscreenFilename2.classList.remove('visible');
+            }, 300);
+        });
+
+        this.fullscreenFilename2.addEventListener('mouseenter', () => {
+            clearTimeout(filenameTimeout);
+        });
+
+        this.fullscreenFilename2.addEventListener('mouseleave', () => {
+            filenameTimeout = setTimeout(() => {
+                this.fullscreenFilename1.classList.remove('visible');
+                this.fullscreenFilename2.classList.remove('visible');
             }, 300);
         });
 
@@ -824,6 +918,70 @@ class ImageViewer {
     hideTooltip() {
         this.tooltip.classList.remove('visible');
         this.tooltip.style.removeProperty('--arrow-direction');
+    }
+
+    toggleFullscreenFilenameDisplay() {
+        const tabData = this.getCurrentTabData();
+        tabData.showPageNumbers = !tabData.showPageNumbers;
+        this.displayImageGrid(); // Refresh the grid
+
+        // If in fullscreen, also update the fullscreen filenames
+        if (this.fullscreenView.classList.contains('active')) {
+            const filteredImages = tabData.showGifsOnly
+                ? tabData.images.filter(img => img.type === 'image/gif')
+                : tabData.images;
+            this.updateFullscreenFilenames(tabData.currentIndex, filteredImages, tabData);
+        }
+    }
+
+    updateFullscreenFilenames(index, filteredImages, tabData) {
+        // Helper function to get display text
+        const getDisplayText = (img, actualIndex) => {
+            if (tabData.showPageNumbers) {
+                return `Page ${actualIndex + 1}`;
+            } else {
+                // Remove file extension for cleaner display
+                return img.name.replace(/\.[^/.]+$/, '');
+            }
+        };
+
+        if (tabData.isTwoSideMode) {
+            this.fullscreenFilename2.style.display = 'block';
+
+            if (tabData.dupFirst && index === 0) {
+                // Duplicate first image for both sides
+                const displayText = getDisplayText(filteredImages[0], 0);
+                this.fullscreenFilename1.textContent = displayText;
+                this.fullscreenFilename2.textContent = displayText;
+            } else {
+                // Normal two-page spread
+                if (tabData.isRightToLeft) {
+                    // fullscreenImage shows current index, fullscreenImage2 shows next index
+                    // Swap: fullscreenFilename1 shows next, fullscreenFilename2 shows current
+                    if (index + 1 < filteredImages.length) {
+                        this.fullscreenFilename1.textContent = getDisplayText(filteredImages[index + 1], index + 1);
+                    } else {
+                        this.fullscreenFilename1.textContent = '';
+                    }
+
+                    this.fullscreenFilename2.textContent = getDisplayText(filteredImages[index], index);
+                } else {
+                    // fullscreenImage shows next index, fullscreenImage2 shows current index
+                    // Swap: fullscreenFilename1 shows current, fullscreenFilename2 shows next
+                    this.fullscreenFilename1.textContent = getDisplayText(filteredImages[index], index);
+
+                    if (index + 1 < filteredImages.length) {
+                        this.fullscreenFilename2.textContent = getDisplayText(filteredImages[index + 1], index + 1);
+                    } else {
+                        this.fullscreenFilename2.textContent = '';
+                    }
+                }
+            }
+        } else {
+            // Single page mode
+            this.fullscreenFilename2.style.display = 'none';
+            this.fullscreenFilename1.textContent = getDisplayText(filteredImages[index], index);
+        }
     }
 }
 
