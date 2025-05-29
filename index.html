@@ -340,6 +340,112 @@
             padding: 8px 12px;
             font-size: 14px;
         }
+
+        .books-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+        }
+
+        .books-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .books-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .books-content h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .book-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 280px;
+        }
+
+        .book-preview {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            flex-shrink: 0;
+        }
+
+        .book-name {
+            font-weight: bold;
+            text-align: center;
+            word-break: break-word;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+        }
+
+        .book-open-btn {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: auto;
+            flex-shrink: 0;
+        }
+
+        .book-open-btn:hover {
+            background-color: #45a049;
+        }
+
+        .books-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .books-close-btn:hover {
+            color: #000;
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -350,7 +456,7 @@
         <div class="controls">
             <input type="file" id="directoryInput" webkitdirectory directory multiple>
             <button id="startButton">Start</button>
-            <button id="openFolderBtn">Open Folder</button>
+            <button id="booksBtn">Books</button>
             <button id="optionsBtn">Options</button>
             <div class="control-group">
                 <input type="checkbox" id="gifOnlyToggle">
@@ -407,6 +513,16 @@
                     <button type="submit">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="books-modal" id="booksModal">
+        <div class="books-content">
+            <button class="books-close-btn" id="closeBooksBtn">&times;</button>
+            <h2>Books Library</h2>
+            <div id="booksGrid" class="books-grid">
+                <div class="loading-message">Loading books...</div>
+            </div>
         </div>
     </div>
 

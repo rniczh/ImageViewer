@@ -4,7 +4,6 @@ class ImageViewer {
         this.currentTabId = null;
         this.initializeElements();
         this.attachEventListeners();
-        this.setupDragging();
         this.createNewTab();
         this.setupDragAndDrop();
     }
@@ -150,8 +149,8 @@ class ImageViewer {
 
         // Listen for directory opening events
         if (window.electron) {
-            window.electron.ipcRenderer.on('open-directory', (event, dirPath) => {
-                this.handleDirectoryPath(dirPath);
+            window.electron.ipcRenderer.on('directory-files-loaded', (event, data) => {
+                this.handleDirectoryFiles(data.dirPath, data.files);
             });
         }
     }
@@ -230,7 +229,10 @@ class ImageViewer {
 
     displayImageGrid() {
         const tabData = this.getCurrentTabData();
-        if (!tabData) return;
+
+        if (!tabData) {
+            return;
+        }
 
         this.imageGrid.innerHTML = '';
         const filteredImages = tabData.showGifsOnly
@@ -242,7 +244,16 @@ class ImageViewer {
             div.className = 'image-item';
 
             const img = document.createElement('img');
-            img.src = URL.createObjectURL(image);
+
+            // Handle both File objects and file paths
+            if (image.path) {
+                // File from directory (has path property)
+                img.src = `file://${image.path}`;
+            } else {
+                // File object from file input
+                img.src = URL.createObjectURL(image);
+            }
+
             img.alt = image.name;
 
             const typeBadge = document.createElement('div');
@@ -312,24 +323,29 @@ class ImageViewer {
             tabData.currentIndex = index;
             const image = filteredImages[index];
 
+            // Helper function to get image source
+            const getImageSrc = (img) => {
+                return img.path ? `file://${img.path}` : URL.createObjectURL(img);
+            };
+
             if (tabData.isTwoSideMode) {
                 if (tabData.isRightToLeft) {
-                    this.fullscreenImage.src = URL.createObjectURL(image);
+                    this.fullscreenImage.src = getImageSrc(image);
                     if (index + 1 < filteredImages.length) {
-                        this.fullscreenImage2.src = URL.createObjectURL(filteredImages[index + 1]);
+                        this.fullscreenImage2.src = getImageSrc(filteredImages[index + 1]);
                     } else {
                         this.fullscreenImage2.src = '';
                     }
                 } else {
-                    this.fullscreenImage2.src = URL.createObjectURL(image);
+                    this.fullscreenImage2.src = getImageSrc(image);
                     if (index + 1 < filteredImages.length) {
-                        this.fullscreenImage.src = URL.createObjectURL(filteredImages[index + 1]);
+                        this.fullscreenImage.src = getImageSrc(filteredImages[index + 1]);
                     } else {
                         this.fullscreenImage.src = '';
                     }
                 }
             } else {
-                this.fullscreenImage.src = URL.createObjectURL(image);
+                this.fullscreenImage.src = getImageSrc(image);
                 this.fullscreenImage2.src = '';
             }
 
@@ -408,19 +424,34 @@ class ImageViewer {
         this.fullscreenImage2.src = '';
     }
 
-    handleDirectoryPath(dirPath) {
-        // If no tabs exist, create one first
-        if (this.tabs.size === 0) {
-            this.createNewTab();
-        }
-
+    handleDirectoryFiles(dirPath, files) {
         // Create a new tab for the directory
         const tabId = this.createNewTab();
+
         const tab = document.querySelector(`.tab[data-tab-id="${tabId}"]`);
         if (tab) {
             const dirName = dirPath.split('/').pop();
             tab.querySelector('span:first-child').textContent = dirName;
         }
+
+        // Get the tab data
+        const tabData = this.tabs.get(tabId);
+
+        // Clear existing images
+        tabData.images = [];
+
+        // Process each file
+        files.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                tabData.images.push(file);
+            }
+        });
+
+        // Sort images by name
+        tabData.images.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Display the images
+        this.displayImageGrid();
     }
 
     setupDragAndDrop() {
@@ -479,7 +510,7 @@ class ImageViewer {
 
 // Initialize the image viewer when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new ImageViewer();
+    window.imageViewerInstance = new ImageViewer();
 });
 
 // Options handling
@@ -572,3 +603,133 @@ optionsModal.addEventListener('click', (event) => {
         optionsModal.classList.remove('active');
     }
 });
+
+// Books functionality
+const booksBtn = document.getElementById('booksBtn');
+const booksModal = document.getElementById('booksModal');
+const booksGrid = document.getElementById('booksGrid');
+const closeBooksBtn = document.getElementById('closeBooksBtn');
+
+// Show books modal
+booksBtn.addEventListener('click', () => {
+    loadBooksLibrary();
+    booksModal.classList.add('active');
+});
+
+// Hide books modal
+closeBooksBtn.addEventListener('click', () => {
+    booksModal.classList.remove('active');
+});
+
+// Close books modal when clicking outside
+booksModal.addEventListener('click', (event) => {
+    if (event.target === booksModal) {
+        booksModal.classList.remove('active');
+    }
+});
+
+// Load books library
+async function loadBooksLibrary() {
+    const booksPath = localStorage.getItem('books.path');
+
+    if (!booksPath) {
+        booksGrid.innerHTML = '<div class="loading-message">Please set your books path in Options first.</div>';
+        return;
+    }
+
+    booksGrid.innerHTML = '<div class="loading-message">Loading books...</div>';
+
+    try {
+        if (window.electron) {
+            // Request books list from main process
+            window.electron.ipcRenderer.send('get-books-list', booksPath);
+        } else {
+            booksGrid.innerHTML = '<div class="loading-message">File system access not available in browser mode.</div>';
+        }
+    } catch (error) {
+        console.error('Error loading books:', error);
+        booksGrid.innerHTML = '<div class="loading-message">Error loading books. Please check your books path.</div>';
+    }
+}
+
+// Handle books list response
+if (window.electron) {
+    window.electron.ipcRenderer.on('books-list-response', (event, books) => {
+        displayBooksList(books);
+    });
+}
+
+// Display books list
+function displayBooksList(books) {
+    if (!books || books.length === 0) {
+        booksGrid.innerHTML = '<div class="loading-message">No books found in the specified directory.</div>';
+        return;
+    }
+
+    booksGrid.innerHTML = '';
+
+    books.forEach(book => {
+        const bookItem = document.createElement('div');
+        bookItem.className = 'book-item';
+
+        const preview = document.createElement('img');
+        preview.className = 'book-preview';
+        preview.src = book.previewImage || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBQcmV2aWV3PC90ZXh0Pjwvc3ZnPg==';
+        preview.alt = `${book.name} preview`;
+        preview.onerror = () => {
+            preview.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBQcmV2aWV3PC90ZXh0Pjwvc3ZnPg==';
+        };
+
+        const bookName = document.createElement('div');
+        bookName.className = 'book-name';
+        bookName.textContent = book.name;
+
+        const openBtn = document.createElement('button');
+        openBtn.className = 'book-open-btn';
+        openBtn.textContent = 'Open';
+        openBtn.addEventListener('click', () => openBook(book.path));
+
+        bookItem.appendChild(preview);
+        bookItem.appendChild(bookName);
+        bookItem.appendChild(openBtn);
+
+        booksGrid.appendChild(bookItem);
+    });
+}
+
+// Open book function
+function openBook(bookPath) {
+    // Close the books modal
+    booksModal.classList.remove('active');
+
+    // Function to handle the book opening
+    const doOpenBook = () => {
+        const imageViewer = window.imageViewerInstance;
+
+        if (imageViewer) {
+            // Don't create a tab here - let handleDirectoryFiles create it with the proper data
+            // Send open directory request to main process
+            if (window.electron) {
+                window.electron.ipcRenderer.send('open-directory', bookPath);
+            }
+        }
+    };
+
+    // Check if imageViewer instance is available
+    if (window.imageViewerInstance) {
+        doOpenBook();
+    } else {
+        // Wait a bit for the instance to be created
+        setTimeout(() => {
+            if (window.imageViewerInstance) {
+                doOpenBook();
+            } else {
+                // Try to create it manually if it's still not available
+                if (typeof ImageViewer !== 'undefined') {
+                    window.imageViewerInstance = new ImageViewer();
+                    doOpenBook();
+                }
+            }
+        }, 100);
+    }
+}
