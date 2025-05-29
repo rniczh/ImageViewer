@@ -481,3 +481,94 @@ class ImageViewer {
 document.addEventListener('DOMContentLoaded', () => {
     new ImageViewer();
 });
+
+// Options handling
+const optionsBtn = document.getElementById('optionsBtn');
+const optionsModal = document.getElementById('optionsModal');
+const optionsForm = document.getElementById('optionsForm');
+const cancelOptionsBtn = document.getElementById('cancelOptionsBtn');
+
+// Load saved options
+function loadOptions() {
+    const booksPath = localStorage.getItem('books.path') || '';
+    const cookiePath = localStorage.getItem('cookie.path') || '';
+
+    document.getElementById('booksPath').value = booksPath;
+    document.getElementById('cookiePath').value = cookiePath;
+}
+
+// Save options
+function saveOptions(event) {
+    event.preventDefault();
+
+    const formData = new FormData(optionsForm);
+    for (const [key, value] of formData.entries()) {
+        localStorage.setItem(key, value);
+    }
+
+    optionsModal.classList.remove('active');
+}
+
+// Handle directory selection
+function handleDirectorySelect(inputId) {
+    const fileInput = document.getElementById(inputId);
+    if (fileInput) {
+        fileInput.click();
+    }
+}
+
+// Handle directory selection result
+function handleDirectorySelected(event, targetInputId) {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+        // Get the full path using Electron's API
+        if (window.electron) {
+            if (targetInputId === 'cookiePath') {
+                // For cookie path, get the full file path
+                document.getElementById(targetInputId).value = files[0].path;
+            } else {
+                // For directory paths, get the parent directory path
+                const dirPath = files[0].path.split('/').slice(0, -1).join('/');
+                document.getElementById(targetInputId).value = dirPath;
+            }
+        }
+    }
+}
+
+// Show options modal
+optionsBtn.addEventListener('click', () => {
+    loadOptions();
+    optionsModal.classList.add('active');
+});
+
+// Hide options modal
+cancelOptionsBtn.addEventListener('click', () => {
+    optionsModal.classList.remove('active');
+});
+
+// Handle form submission
+optionsForm.addEventListener('submit', saveOptions);
+
+// Handle directory selection buttons
+document.querySelectorAll('.select-dir-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        const inputId = button.dataset.for;
+        handleDirectorySelect(inputId);
+    });
+});
+
+// Handle directory selection results
+document.getElementById('booksPathInput').addEventListener('change', (e) => {
+    handleDirectorySelected(e, 'booksPath');
+});
+
+document.getElementById('cookiePathInput').addEventListener('change', (e) => {
+    handleDirectorySelected(e, 'cookiePath');
+});
+
+// Close modal when clicking outside
+optionsModal.addEventListener('click', (event) => {
+    if (event.target === optionsModal) {
+        optionsModal.classList.remove('active');
+    }
+});

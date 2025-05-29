@@ -266,6 +266,80 @@
         .tab-content.active {
             display: block;
         }
+
+        .options-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+        }
+
+        .options-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .options-content h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .options-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+        }
+
+        .form-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .options-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .path-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .path-input-group input {
+            flex: 1;
+        }
+
+        .select-dir-btn {
+            white-space: nowrap;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -276,6 +350,8 @@
         <div class="controls">
             <input type="file" id="directoryInput" webkitdirectory directory multiple>
             <button id="startButton">Start</button>
+            <button id="openFolderBtn">Open Folder</button>
+            <button id="optionsBtn">Options</button>
             <div class="control-group">
                 <input type="checkbox" id="gifOnlyToggle">
                 <label for="gifOnlyToggle">Show GIFs Only</label>
@@ -303,6 +379,34 @@
         <div class="navigation-group" id="navigationGroup">
             <button id="prevButton">Previous</button>
             <button id="nextButton">Next</button>
+        </div>
+    </div>
+
+    <div class="options-modal" id="optionsModal">
+        <div class="options-content">
+            <h2>Options</h2>
+            <form class="options-form" id="optionsForm">
+                <div class="form-group">
+                    <label for="booksPath">Books Path:</label>
+                    <div class="path-input-group">
+                        <input type="text" id="booksPath" name="books.path" required>
+                        <input type="file" id="booksPathInput" webkitdirectory directory style="display: none;">
+                        <button type="button" class="select-dir-btn" data-for="booksPathInput">Select Directory</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cookiePath">Cookie Path:</label>
+                    <div class="path-input-group">
+                        <input type="text" id="cookiePath" name="cookie.path" required>
+                        <input type="file" id="cookiePathInput" style="display: none;">
+                        <button type="button" class="select-dir-btn" data-for="cookiePathInput">Select File</button>
+                    </div>
+                </div>
+                <div class="options-buttons">
+                    <button type="button" id="cancelOptionsBtn">Cancel</button>
+                    <button type="submit">Save</button>
+                </div>
+            </form>
         </div>
     </div>
 
