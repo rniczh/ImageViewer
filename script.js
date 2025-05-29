@@ -6,6 +6,11 @@ class ImageViewer {
         this.attachEventListeners();
         this.createNewTab();
         this.setupDragAndDrop();
+
+        // Initialize gap control with default value
+        setTimeout(() => {
+            this.setGap(0); // Default to compact mode
+        }, 100);
     }
 
     initializeElements() {
@@ -22,12 +27,17 @@ class ImageViewer {
         this.nextButton = document.getElementById('nextButton');
         this.navigationGroup = document.getElementById('navigationGroup');
         this.gifOnlyToggle = document.getElementById('gifOnlyToggle');
+        this.gapControlPanel = document.getElementById('gapControlPanel');
 
         // Get both sets of buttons (in controls and in fullscreen view)
         this.singleModeButtons = document.querySelectorAll('#singleModeButton');
         this.twoSideModeButtons = document.querySelectorAll('#twoSideModeButton');
         this.directionButtons = document.querySelectorAll('#directionButton');
         this.dupFirstButtons = document.querySelectorAll('#dupFirstButton');
+        this.gapButtons = document.querySelectorAll('.gap-button');
+
+        // Current gap setting
+        this.currentGap = 0; // Default to 0 (compact)
     }
 
     createNewTab() {
@@ -160,6 +170,14 @@ class ImageViewer {
         this.navigationGroup.addEventListener('click', (e) => {
             e.stopPropagation();
         });
+
+        // Prevent clicks on the gap control panel from triggering exit
+        this.gapControlPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Gap control functionality
+        this.setupGapControl();
 
         // Listen for directory opening events
         if (window.electron) {
@@ -575,6 +593,63 @@ class ImageViewer {
                 }
             }
         }, false);
+    }
+
+    // Gap control functionality
+    setupGapControl() {
+        // Mouse hover events for showing/hiding the gap control panel
+        let hoverTimeout;
+
+        this.fullscreenView.addEventListener('mousemove', (e) => {
+            if (this.fullscreenView.classList.contains('active')) {
+                // Show panel when mouse is near top (within 50px)
+                if (e.clientY <= 50) {
+                    clearTimeout(hoverTimeout);
+                    this.gapControlPanel.classList.add('visible');
+                } else if (e.clientY > 100) {
+                    // Hide panel when mouse moves away from top area
+                    clearTimeout(hoverTimeout);
+                    hoverTimeout = setTimeout(() => {
+                        this.gapControlPanel.classList.remove('visible');
+                    }, 500);
+                }
+            }
+        });
+
+        // Prevent hiding when hovering over the panel itself
+        this.gapControlPanel.addEventListener('mouseenter', () => {
+            clearTimeout(hoverTimeout);
+        });
+
+        this.gapControlPanel.addEventListener('mouseleave', () => {
+            hoverTimeout = setTimeout(() => {
+                this.gapControlPanel.classList.remove('visible');
+            }, 300);
+        });
+
+        // Gap button click events
+        this.gapButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const gap = parseInt(button.dataset.gap);
+                this.setGap(gap);
+            });
+        });
+    }
+
+    // Set gap size
+    setGap(gap) {
+        this.currentGap = gap;
+
+        // Update button states
+        this.gapButtons.forEach(button => {
+            button.classList.toggle('active', parseInt(button.dataset.gap) === gap);
+        });
+
+        // Apply gap to images container
+        const imagesContainer = document.querySelector('.images-container');
+        if (imagesContainer) {
+            imagesContainer.style.gap = `${gap}px`;
+        }
     }
 }
 

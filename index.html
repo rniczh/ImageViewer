@@ -207,6 +207,51 @@
             background-color: #4CAF50;
         }
 
+        .gap-control-panel {
+            position: fixed;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 0 0 8px 8px;
+            z-index: 1001;
+            transition: top 0.3s ease;
+        }
+
+        .gap-control-panel.visible {
+            top: 0;
+        }
+
+        .gap-label {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+
+        .gap-button {
+            padding: 6px 12px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s ease;
+        }
+
+        .gap-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .gap-button.active {
+            background-color: #4CAF50;
+        }
+
         .tabs {
             display: flex;
             gap: 5px;
@@ -561,6 +606,14 @@
 
     <div class="fullscreen-view" id="fullscreenView">
         <button class="back-button" id="backButton">Back</button>
+
+        <!-- Gap Control Panel -->
+        <div class="gap-control-panel" id="gapControlPanel">
+            <span class="gap-label">Gap:</span>
+            <button class="gap-button active" data-gap="0">0px</button>
+            <button class="gap-button" data-gap="20">20px</button>
+        </div>
+
         <div class="view-mode-group">
             <button id="singleModeButton" class="active">Single</button>
             <button id="twoSideModeButton">Two-Side</button>
