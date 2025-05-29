@@ -11,6 +11,9 @@ class ImageViewer {
         setTimeout(() => {
             this.setGap(0); // Default to compact mode
         }, 100);
+
+        // Initialize tooltips
+        this.setupTooltips();
     }
 
     initializeElements() {
@@ -710,6 +713,117 @@ class ImageViewer {
             group.classList.add('collapsed');
             toggleButton.textContent = '▶';
         }
+    }
+
+    // Initialize tooltips
+    setupTooltips() {
+        // Create a single tooltip element that we'll reuse
+        this.tooltip = document.createElement('div');
+        this.tooltip.className = 'tooltip';
+        document.body.appendChild(this.tooltip);
+
+        // Tooltip timeout for delay
+        this.tooltipTimeout = null;
+
+        // Define tooltip messages for each button type
+        const tooltipMessages = {
+            singleMode: 'Single page view',
+            twoSideMode: 'Two page view',
+            direction: 'Reading direction (R: Right-to-left, L: Left-to-right)',
+            dupFirst: 'Duplicate first page in two-page mode'
+        };
+
+        // Add tooltip to all single mode buttons
+        this.singleModeButtons.forEach(button => {
+            this.addTooltip(button, tooltipMessages.singleMode);
+        });
+
+        // Add tooltip to all two-side mode buttons
+        this.twoSideModeButtons.forEach(button => {
+            this.addTooltip(button, tooltipMessages.twoSideMode);
+        });
+
+        // Add tooltip to all direction buttons
+        this.directionButtons.forEach(button => {
+            this.addTooltip(button, tooltipMessages.direction);
+        });
+
+        // Add tooltip to all dupFirst buttons
+        this.dupFirstButtons.forEach(button => {
+            this.addTooltip(button, tooltipMessages.dupFirst);
+        });
+    }
+
+    addTooltip(element, message) {
+        element.addEventListener('mouseenter', (e) => {
+            // Clear any existing timeout
+            if (this.tooltipTimeout) {
+                clearTimeout(this.tooltipTimeout);
+            }
+
+            // Set a delay before showing the tooltip (1.5 seconds)
+            this.tooltipTimeout = setTimeout(() => {
+                this.showTooltip(e.target, message);
+            }, 1500);
+        });
+
+        element.addEventListener('mouseleave', () => {
+            // Clear the timeout if mouse leaves before tooltip shows
+            if (this.tooltipTimeout) {
+                clearTimeout(this.tooltipTimeout);
+                this.tooltipTimeout = null;
+            }
+            this.hideTooltip();
+        });
+
+        // Hide tooltip if button is clicked
+        element.addEventListener('click', () => {
+            if (this.tooltipTimeout) {
+                clearTimeout(this.tooltipTimeout);
+                this.tooltipTimeout = null;
+            }
+            this.hideTooltip();
+        });
+    }
+
+    showTooltip(element, message) {
+        this.tooltip.textContent = message;
+        this.tooltip.classList.add('visible');
+
+        // Position the tooltip above the element
+        const rect = element.getBoundingClientRect();
+        const tooltipRect = this.tooltip.getBoundingClientRect();
+
+        // Calculate position
+        const left = rect.left + (rect.width / 2);
+        const top = rect.top - tooltipRect.height - 10; // 10px gap above the button
+
+        this.tooltip.style.left = `${left}px`;
+        this.tooltip.style.top = `${top}px`;
+
+        // Ensure tooltip stays within viewport
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        if (left + tooltipRect.width / 2 > viewportWidth) {
+            this.tooltip.style.left = `${viewportWidth - tooltipRect.width - 10}px`;
+            this.tooltip.style.transform = 'none';
+        } else if (left - tooltipRect.width / 2 < 0) {
+            this.tooltip.style.left = '10px';
+            this.tooltip.style.transform = 'none';
+        }
+
+        if (top < 0) {
+            // If tooltip would go above viewport, show it below the button instead
+            this.tooltip.style.top = `${rect.bottom + 10}px`;
+            // Flip the arrow to point up
+            this.tooltip.style.setProperty('--arrow-direction', 'up');
+        }
+    }
+
+    hideTooltip() {
+        this.tooltip.classList.remove('visible');
+        this.tooltip.style.removeProperty('--arrow-direction');
     }
 }
 
