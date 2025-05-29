@@ -28,6 +28,7 @@ class ImageViewer {
         this.navigationGroup = document.getElementById('navigationGroup');
         this.gifOnlyToggle = document.getElementById('gifOnlyToggle');
         this.gapControlPanel = document.getElementById('gapControlPanel');
+        this.gapSlider = document.getElementById('gapSlider');
 
         // Get both sets of buttons (in controls and in fullscreen view)
         this.singleModeButtons = document.querySelectorAll('#singleModeButton');
@@ -634,16 +635,25 @@ class ImageViewer {
                 this.setGap(gap);
             });
         });
+
+        // Gap slider input event
+        this.gapSlider.addEventListener('input', () => {
+            const gap = parseInt(this.gapSlider.value);
+            this.setGap(gap);
+        });
     }
 
     // Set gap size
     setGap(gap) {
         this.currentGap = gap;
 
-        // Update button states
+        // Update button states (only highlight if exactly 0 or 20)
         this.gapButtons.forEach(button => {
             button.classList.toggle('active', parseInt(button.dataset.gap) === gap);
         });
+
+        // Update slider value
+        this.gapSlider.value = gap;
 
         // Apply gap to images container
         const imagesContainer = document.querySelector('.images-container');
