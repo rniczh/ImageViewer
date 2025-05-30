@@ -404,7 +404,10 @@ class ImageViewer {
 
         // Refresh display if in fullscreen to immediately show the direction change
         if (this.fullscreenView.classList.contains('active')) {
-            this.showImage(tabData.currentIndex);
+            const filteredImages = tabData.showGifsOnly
+                ? tabData.images.filter(img => img.type === 'image/gif')
+                : tabData.images;
+            this.updateFullscreenFilenames(tabData.currentIndex, filteredImages, tabData);
         }
     }
 
@@ -1069,27 +1072,11 @@ class ImageViewer {
                 this.fullscreenFilename1.textContent = displayText;
                 this.fullscreenFilename2.textContent = displayText;
             } else {
-                // Normal two-page spread
-                if (tabData.isRightToLeft) {
-                    // fullscreenImage shows current index, fullscreenImage2 shows next index
-                    // Swap: fullscreenFilename1 shows next, fullscreenFilename2 shows current
-                    if (index + 1 < filteredImages.length) {
-                        this.fullscreenFilename1.textContent = getDisplayText(filteredImages[index + 1], index + 1);
-                    } else {
-                        this.fullscreenFilename1.textContent = '';
-                    }
-
-                    this.fullscreenFilename2.textContent = getDisplayText(filteredImages[index], index);
+                this.fullscreenFilename2.textContent = getDisplayText(filteredImages[index], index);
+                if (index + 1 < filteredImages.length) {
+                    this.fullscreenFilename1.textContent = getDisplayText(filteredImages[index + 1], index + 1);
                 } else {
-                    // fullscreenImage shows next index, fullscreenImage2 shows current index
-                    // Swap: fullscreenFilename1 shows current, fullscreenFilename2 shows next
-                    this.fullscreenFilename1.textContent = getDisplayText(filteredImages[index], index);
-
-                    if (index + 1 < filteredImages.length) {
-                        this.fullscreenFilename2.textContent = getDisplayText(filteredImages[index + 1], index + 1);
-                    } else {
-                        this.fullscreenFilename2.textContent = '';
-                    }
+                    this.fullscreenFilename1.textContent = '';
                 }
             }
         } else {
