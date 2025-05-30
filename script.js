@@ -999,10 +999,8 @@ const cancelOptionsBtn = document.getElementById('cancelOptionsBtn');
 // Load saved options
 function loadOptions() {
     const booksPath = localStorage.getItem('books.path') || '';
-    const cookiePath = localStorage.getItem('cookie.path') || '';
 
     document.getElementById('booksPath').value = booksPath;
-    document.getElementById('cookiePath').value = cookiePath;
 }
 
 // Save options
@@ -1031,14 +1029,9 @@ function handleDirectorySelected(event, targetInputId) {
     if (files && files.length > 0) {
         // Get the full path using Electron's API
         if (window.electron) {
-            if (targetInputId === 'cookiePath') {
-                // For cookie path, get the full file path
-                document.getElementById(targetInputId).value = files[0].path;
-            } else {
-                // For directory paths, get the parent directory path
-                const dirPath = files[0].path.split('/').slice(0, -1).join('/');
-                document.getElementById(targetInputId).value = dirPath;
-            }
+            // For directory paths, get the parent directory path
+            const dirPath = files[0].path.split('/').slice(0, -1).join('/');
+            document.getElementById(targetInputId).value = dirPath;
         }
     }
 }
@@ -1068,10 +1061,6 @@ document.querySelectorAll('.select-dir-btn').forEach(button => {
 // Handle directory selection results
 document.getElementById('booksPathInput').addEventListener('change', (e) => {
     handleDirectorySelected(e, 'booksPath');
-});
-
-document.getElementById('cookiePathInput').addEventListener('change', (e) => {
-    handleDirectorySelected(e, 'cookiePath');
 });
 
 // Close modal when clicking outside
