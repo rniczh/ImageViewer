@@ -651,25 +651,29 @@ class ImageViewer {
         // Handle the drop event
         document.body.addEventListener('drop', (e) => {
             const items = e.dataTransfer.items;
-            if (items) {
-                // Create a new tab for the dropped folder
-                const tabId = this.createNewTab();
-                const tab = document.querySelector(`.tab[data-tab-id="${tabId}"]`);
 
+            if (items) {
                 // Process each dropped item
                 for (let i = 0; i < items.length; i++) {
                     const item = items[i];
+
                     if (item.kind === 'file') {
                         const entry = item.webkitGetAsEntry();
-                        if (entry && entry.isDirectory) {
-                            // Update tab title with folder name
-                            if (tab) {
-                                tab.querySelector('span:first-child').textContent = entry.name;
-                            }
 
-                            // If we have access to the Electron API, use it to open the directory
-                            if (window.electron) {
-                                window.electron.ipcRenderer.send('open-directory', entry.fullPath);
+                        if (entry && entry.isDirectory) {
+                            // Try to get the real path from the file handle
+                            const file = item.getAsFile();
+                            if (file && file.path) {
+                                // Since we're inside the class, we can directly send the request
+                                // Don't create a tab here - let handleDirectoryFiles create it with the proper data
+                                if (window.electron) {
+                                    window.electron.ipcRenderer.send('open-directory', file.path);
+                                }
+                            } else {
+                                // Fallback to the virtual path (probably won't work)
+                                if (window.electron) {
+                                    window.electron.ipcRenderer.send('open-directory', entry.fullPath);
+                                }
                             }
                             break; // Only process the first directory
                         }
