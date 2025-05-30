@@ -30,7 +30,7 @@ jobs:
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             npm run build:win
           else
-            npm run build:mac
+            npm run build
           fi
 
       - name: Upload artifacts
