@@ -839,7 +839,9 @@ class ImageViewer {
             singleMode: 'Single page view',
             twoSideMode: 'Two page view',
             direction: 'Reading direction (R: Right-to-left, L: Left-to-right)',
-            dupFirst: 'Duplicate first page in two-page mode'
+            dupFirst: 'Duplicate first page in two-page mode',
+            gifsToggle: 'Only show GIF images in the gallery',
+            labelsToggle: 'Show page number and filename. Click label to switch between them'
         };
 
         // Add tooltip to all single mode buttons
@@ -861,6 +863,18 @@ class ImageViewer {
         this.dupFirstButtons.forEach(button => {
             this.addTooltip(button, tooltipMessages.dupFirst);
         });
+
+        // Add tooltips to switch toggles
+        const gifsToggleContainer = document.querySelector('[data-tooltip="gifs-tooltip"]');
+        const labelsToggleContainer = document.querySelector('[data-tooltip="labels-tooltip"]');
+
+        if (gifsToggleContainer) {
+            this.addTooltip(gifsToggleContainer, tooltipMessages.gifsToggle);
+        }
+
+        if (labelsToggleContainer) {
+            this.addTooltip(labelsToggleContainer, tooltipMessages.labelsToggle);
+        }
     }
 
     addTooltip(element, message) {
