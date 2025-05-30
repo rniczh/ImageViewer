@@ -400,6 +400,7 @@ class ImageViewer {
 
     toggleDupFirst() {
         const tabData = this.getCurrentTabData();
+        const wasdupFirst = tabData.dupFirst;
         tabData.dupFirst = !tabData.dupFirst;
 
         // Update all dupFirst buttons
@@ -407,8 +408,40 @@ class ImageViewer {
             button.classList.toggle('active', tabData.dupFirst);
         });
 
-        // Refresh display if in fullscreen
-        if (this.fullscreenView.classList.contains('active')) {
+        // Refresh display if in fullscreen - need to handle the index adjustment
+        if (this.fullscreenView.classList.contains('active') && tabData.isTwoSideMode) {
+            const currentIndex = tabData.currentIndex;
+
+            if (tabData.dupFirst && !wasdupFirst) {
+                // Enabling dupFirst: need to adjust the view
+                if (currentIndex === 0) {
+                    // Already on first page, just refresh to show duplicated
+                    this.showImage(0);
+                } else if (currentIndex % 2 === 0) {
+                    // Currently on even index (like 2, 4, 6...), adjust to odd for dupFirst
+                    this.showImage(currentIndex - 1);
+                } else {
+                    // Already on odd index, just refresh
+                    this.showImage(currentIndex);
+                }
+            } else if (!tabData.dupFirst && wasdupFirst) {
+                // Disabling dupFirst: need to adjust the view
+                if (currentIndex === 0) {
+                    // Stay on first page
+                    this.showImage(0);
+                } else if (currentIndex % 2 === 1) {
+                    // Currently on odd index (like 1, 3, 5...), adjust to even for normal mode
+                    this.showImage(currentIndex + 1);
+                } else {
+                    // Already on even index, just refresh
+                    this.showImage(currentIndex);
+                }
+            } else {
+                // Just refresh the current view
+                this.showImage(currentIndex);
+            }
+        } else if (this.fullscreenView.classList.contains('active')) {
+            // For single mode or other cases, just refresh
             this.showImage(tabData.currentIndex);
         }
     }
@@ -443,12 +476,32 @@ class ImageViewer {
             };
 
             if (tabData.isTwoSideMode) {
-                if (tabData.dupFirst && index === 0) {
-                    // Duplicate first image for both sides
-                    this.fullscreenImage.src = getImageSrc(image);
-                    this.fullscreenImage2.src = getImageSrc(image);
+                if (tabData.dupFirst) {
+                    if (index === 0) {
+                        // Special case: duplicate first image on both sides
+                        this.fullscreenImage.src = getImageSrc(image);
+                        this.fullscreenImage2.src = getImageSrc(image);
+                    } else {
+                        // For dupFirst mode with index > 0: show current + next image
+                        // This follows the dupFirst navigation pattern
+                        if (tabData.isRightToLeft) {
+                            this.fullscreenImage.src = getImageSrc(image);
+                            if (index + 1 < filteredImages.length) {
+                                this.fullscreenImage2.src = getImageSrc(filteredImages[index + 1]);
+                            } else {
+                                this.fullscreenImage2.src = '';
+                            }
+                        } else {
+                            this.fullscreenImage2.src = getImageSrc(image);
+                            if (index + 1 < filteredImages.length) {
+                                this.fullscreenImage.src = getImageSrc(filteredImages[index + 1]);
+                            } else {
+                                this.fullscreenImage.src = '';
+                            }
+                        }
+                    }
                 } else {
-                    // Normal two-page spread
+                    // Normal two-page spread: current + next image
                     if (tabData.isRightToLeft) {
                         this.fullscreenImage.src = getImageSrc(image);
                         if (index + 1 < filteredImages.length) {
@@ -466,6 +519,7 @@ class ImageViewer {
                     }
                 }
             } else {
+                // Single mode
                 this.fullscreenImage.src = getImageSrc(image);
                 this.fullscreenImage2.src = '';
             }
