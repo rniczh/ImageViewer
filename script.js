@@ -32,6 +32,7 @@ class ImageViewer {
         this.nextButton = document.getElementById('nextButton');
         this.navigationGroup = document.getElementById('navigationGroup');
         this.gifOnlyToggle = document.getElementById('gifOnlyToggle');
+        this.showLabelsToggle = document.getElementById('showLabelsToggle');
         this.gapControlPanel = document.getElementById('gapControlPanel');
         this.gapSlider = document.getElementById('gapSlider');
         this.viewModeGroup = document.querySelector('.view-mode-group');
@@ -58,7 +59,8 @@ class ImageViewer {
             isTwoSideMode: false,
             isRightToLeft: true,
             dupFirst: false,
-            showPageNumbers: false
+            showPageNumbers: false,
+            showLabels: false
         };
         this.tabs.set(tabId, tabData);
 
@@ -86,6 +88,7 @@ class ImageViewer {
 
         // Update UI state
         this.gifOnlyToggle.checked = tabData.showGifsOnly;
+        this.showLabelsToggle.checked = tabData.showLabels;
         this.directionButtons.forEach(button => {
             button.textContent = tabData.isRightToLeft ? 'R' : 'L';
         });
@@ -133,6 +136,7 @@ class ImageViewer {
         this.prevButton.addEventListener('click', () => this.showPreviousImage());
         this.nextButton.addEventListener('click', () => this.showNextImage());
         this.gifOnlyToggle.addEventListener('change', () => this.toggleGifFilter());
+        this.showLabelsToggle.addEventListener('change', () => this.toggleShowLabels());
 
         // Add event listeners to all mode buttons
         this.singleModeButtons.forEach(button => {
@@ -321,31 +325,36 @@ class ImageViewer {
             typeBadge.className = 'type-badge';
             typeBadge.textContent = image.type.split('/')[1].toUpperCase();
 
-            // Create filename/page number label
-            const filenameLabel = document.createElement('div');
-            filenameLabel.className = 'filename-label';
-
-            // Display either page number or filename based on tab setting
-            if (tabData.showPageNumbers) {
-                filenameLabel.textContent = `Page ${index + 1}`;
-                filenameLabel.title = `Click to show filename. Current: ${image.name}`;
-            } else {
-                // Remove file extension for cleaner display
-                const nameWithoutExt = image.name.replace(/\.[^/.]+$/, '');
-                filenameLabel.textContent = nameWithoutExt;
-                filenameLabel.title = `Click to show page number. Page ${index + 1}`;
-            }
-
-            // Add click handler to toggle between filename and page number
-            filenameLabel.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent triggering image click
-                tabData.showPageNumbers = !tabData.showPageNumbers;
-                this.displayImageGrid(); // Refresh the grid to update all labels
-            });
-
             div.appendChild(img);
             div.appendChild(typeBadge);
-            div.appendChild(filenameLabel);
+
+            // Only show filename/page number labels if enabled
+            if (tabData.showLabels) {
+                // Create filename/page number label
+                const filenameLabel = document.createElement('div');
+                filenameLabel.className = 'filename-label';
+
+                // Display either page number or filename based on tab setting
+                if (tabData.showPageNumbers) {
+                    filenameLabel.textContent = `Page ${index + 1}`;
+                    filenameLabel.title = `Click to show filename. Current: ${image.name}`;
+                } else {
+                    // Remove file extension for cleaner display
+                    const nameWithoutExt = image.name.replace(/\.[^/.]+$/, '');
+                    filenameLabel.textContent = nameWithoutExt;
+                    filenameLabel.title = `Click to show page number. Page ${index + 1}`;
+                }
+
+                // Add click handler to toggle between filename and page number
+                filenameLabel.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent triggering image click
+                    tabData.showPageNumbers = !tabData.showPageNumbers;
+                    this.displayImageGrid(); // Refresh the grid to update all labels
+                });
+
+                div.appendChild(filenameLabel);
+            }
+
             div.addEventListener('click', () => this.showImage(index));
             this.imageGrid.appendChild(div);
         });
@@ -407,6 +416,12 @@ class ImageViewer {
     toggleGifFilter() {
         const tabData = this.getCurrentTabData();
         tabData.showGifsOnly = this.gifOnlyToggle.checked;
+        this.displayImageGrid();
+    }
+
+    toggleShowLabels() {
+        const tabData = this.getCurrentTabData();
+        tabData.showLabels = this.showLabelsToggle.checked;
         this.displayImageGrid();
     }
 
