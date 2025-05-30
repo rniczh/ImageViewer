@@ -140,6 +140,10 @@ npm start
 - `index.html`: Application UI and styling
 - `script.js`: Core application logic and image handling
 
+## TODO
+
+- [ ] Add an icon for this app
+
 ## Contributing
 
 1. Fork the repository
