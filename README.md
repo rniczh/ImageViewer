@@ -120,13 +120,6 @@ imageViewer/
 └── README.md          # This file
 ```
 
-## Features in Detail
-
-### Switch Toggles
-Modern toggle switches with hover tooltips:
-- **GIFs Toggle**: "Only show GIF images in the gallery"
-- **Labels Toggle**: "Show page number and filename. Click label to switch between them"
-
 ## Development
 
 ### Running in Development Mode
