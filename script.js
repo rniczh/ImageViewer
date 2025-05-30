@@ -627,17 +627,26 @@ class ImageViewer {
     }
 
     setupDragAndDrop() {
-        // Prevent default drag behaviors
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            document.body.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
+        // Prevent default drag behaviors on both body and window to ensure full coverage
+        const targets = [document.body, window];
+
+        targets.forEach(target => {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                target.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
         });
 
         // Add visual feedback when dragging over the app
         ['dragenter', 'dragover'].forEach(eventName => {
             document.body.addEventListener(eventName, () => {
+                document.body.classList.add('drag-over');
+            }, false);
+
+            // Also listen on window for better coverage
+            window.addEventListener(eventName, () => {
                 document.body.classList.add('drag-over');
             }, false);
         });
@@ -646,10 +655,15 @@ class ImageViewer {
             document.body.addEventListener(eventName, () => {
                 document.body.classList.remove('drag-over');
             }, false);
+
+            // Also listen on window for better coverage
+            window.addEventListener(eventName, () => {
+                document.body.classList.remove('drag-over');
+            }, false);
         });
 
-        // Handle the drop event
-        document.body.addEventListener('drop', (e) => {
+        // Handle the drop event on both body and window
+        const handleDrop = (e) => {
             const items = e.dataTransfer.items;
 
             if (items) {
@@ -680,7 +694,11 @@ class ImageViewer {
                     }
                 }
             }
-        }, false);
+        };
+
+        // Add drop handlers to both body and window
+        document.body.addEventListener('drop', handleDrop, false);
+        window.addEventListener('drop', handleDrop, false);
     }
 
     // Gap control functionality
