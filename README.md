@@ -4,6 +4,8 @@
 
 A simple image viewer built with Electron, designed for browsing image collections and comic books.
 
+![Image Viewer Preview](preview-of-image-viewer.png)
+
 ## Features
 
 ### 🖼️ **Multi-Tab Image Browsing**
