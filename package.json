@@ -8,8 +8,8 @@
     "build": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Hongsheng <mathan0203@gmail.com>",
+  "license": "MIT",
   "devDependencies": {
     "electron": "^28.1.0",
     "electron-builder": "^24.9.1"
@@ -37,7 +37,7 @@
       "icon": "build/icon.ico"
     },
     "linux": {
-      "target": ["AppImage", "deb", "rpm"],
+      "target": ["AppImage", "deb"],
       "icon": "build/icon.png",
       "category": "Graphics"
     },

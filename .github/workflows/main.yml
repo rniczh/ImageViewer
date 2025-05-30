@@ -26,11 +26,11 @@ jobs:
       - name: Build for specific platform
         run: |
           if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            npm run build:linux
+            npx electron-builder --linux
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npm run build:win
+            npx electron-builder --win
           else
-            npm run build:mac
+            npx electron-builder --mac
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
