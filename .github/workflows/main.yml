@@ -13,10 +13,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -34,33 +34,36 @@ jobs:
           fi
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-build
+          name: build-${{ matrix.os }}
           path: dist/*
+          if-no-files-found: error
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: ubuntu-latest-build
+          name: build-ubuntu-latest
           path: dist/linux
+
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: windows-latest-build
+          name: build-windows-latest
           path: dist/windows
+
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: macos-latest-build
+          name: build-macos-latest
           path: dist/mac
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/linux/*
