@@ -70,9 +70,6 @@ jobs:
           draft: false
           prerelease: false
           tag_name: ${{ github.ref_name }}
-          files: |
-            dist/linux/*
-            dist/windows/*
-            dist/mac/*
+          files: dist/*.deb dist/*.dmg dist/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
