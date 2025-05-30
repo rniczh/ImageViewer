@@ -9,7 +9,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -24,7 +24,14 @@ jobs:
         run: npm install
 
       - name: Build for specific platform
-        run: npm run build
+        run: |
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            npm run build:linux
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npm run build:win
+          else
+            npm run build:mac
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -39,6 +46,16 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-ubuntu-latest
+          path: dist/linux
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-windows-latest
+          path: dist/windows
       - name: Download macOS artifacts
         uses: actions/download-artifact@v4
         with:
@@ -48,6 +65,9 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/mac/*
+          files: |
+            dist/linux/*
+            dist/windows/*
+            dist/mac/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
