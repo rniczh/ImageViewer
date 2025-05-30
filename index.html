@@ -610,6 +610,7 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 2000;
+            overflow: hidden;
         }
 
         .books-modal.active {
@@ -626,7 +627,9 @@
             max-width: 1000px;
             max-height: 85vh;
             overflow-y: auto;
+            overflow-x: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
         }
 
         .books-content h2 {
@@ -638,11 +641,40 @@
             text-align: center;
         }
 
+        .books-search {
+            margin-bottom: 20px;
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .books-search input {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+
+        .books-search input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .books-search input::placeholder {
+            color: #999;
+        }
+
         .books-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 25px;
             padding: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .book-item {
@@ -653,7 +685,8 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            height: 320px;
+            min-height: 320px;
+            height: auto;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             overflow: hidden;
@@ -681,7 +714,8 @@
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
-            min-height: 60px;
+            min-height: 40px;
+            max-height: 4.0em;
             padding: 5px 0;
             font-size: 14px;
             line-height: 1.4;
@@ -922,6 +956,9 @@
         <div class="books-content">
             <button class="books-close-btn" id="closeBooksBtn">&times;</button>
             <h2>Books Library</h2>
+            <div class="books-search">
+                <input type="text" id="booksSearch" placeholder="Search books...">
+            </div>
             <div id="booksGrid" class="books-grid">
                 <div class="loading-message">Loading books...</div>
             </div>

@@ -1234,34 +1234,59 @@ function displayBooksList(books) {
         return;
     }
 
-    booksGrid.innerHTML = '';
+    // Store the original books list for filtering
+    window.originalBooksList = books;
 
-    books.forEach(book => {
-        const bookItem = document.createElement('div');
-        bookItem.className = 'book-item';
+    // Function to filter and display books
+    const filterAndDisplayBooks = (searchText) => {
+        const filteredBooks = books.filter(book =>
+            book.name.toLowerCase().includes(searchText.toLowerCase())
+        );
 
-        const preview = document.createElement('img');
-        preview.className = 'book-preview';
-        preview.src = book.previewImage || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBQcmV2aWV3PC90ZXh0Pjwvc3ZnPg==';
-        preview.alt = `${book.name} preview`;
-        preview.onerror = () => {
-            preview.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBQcmV2aWV3PC90ZXh0Pjwvc3ZnPg==';
-        };
+        if (filteredBooks.length === 0) {
+            booksGrid.innerHTML = '<div class="loading-message">No books match your search.</div>';
+            return;
+        }
 
-        const bookName = document.createElement('div');
-        bookName.className = 'book-name';
-        bookName.textContent = book.name;
+        booksGrid.innerHTML = '';
 
-        const openBtn = document.createElement('button');
-        openBtn.className = 'book-open-btn';
-        openBtn.textContent = 'Open';
-        openBtn.addEventListener('click', () => openBook(book.path));
+        filteredBooks.forEach(book => {
+            const bookItem = document.createElement('div');
+            bookItem.className = 'book-item';
 
-        bookItem.appendChild(preview);
-        bookItem.appendChild(bookName);
-        bookItem.appendChild(openBtn);
+            const preview = document.createElement('img');
+            preview.className = 'book-preview';
+            preview.src = book.previewImage || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBQcmV2aWV3PC90ZXh0Pjwvc3ZnPg==';
+            preview.alt = `${book.name} preview`;
+            preview.onerror = () => {
+                preview.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2UwZTBlMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5ObyBQcmV2aWV3PC90ZXh0Pjwvc3ZnPg==';
+            };
 
-        booksGrid.appendChild(bookItem);
+            const bookName = document.createElement('div');
+            bookName.className = 'book-name';
+            bookName.textContent = book.name;
+            bookName.title = book.name;
+
+            const openBtn = document.createElement('button');
+            openBtn.className = 'book-open-btn';
+            openBtn.textContent = 'Open';
+            openBtn.addEventListener('click', () => openBook(book.path));
+
+            bookItem.appendChild(preview);
+            bookItem.appendChild(bookName);
+            bookItem.appendChild(openBtn);
+
+            booksGrid.appendChild(bookItem);
+        });
+    };
+
+    // Initial display of all books
+    filterAndDisplayBooks('');
+
+    // Add search input event listener
+    const searchInput = document.getElementById('booksSearch');
+    searchInput.addEventListener('input', (e) => {
+        filterAndDisplayBooks(e.target.value);
     });
 }
 
