@@ -377,6 +377,11 @@ class ImageViewer {
         });
 
         this.updateImageLayout();
+
+        // Refresh display if in fullscreen to immediately show the view mode change
+        if (this.fullscreenView.classList.contains('active')) {
+            this.showImage(tabData.currentIndex);
+        }
     }
 
     toggleReadingDirection() {
@@ -396,6 +401,11 @@ class ImageViewer {
         }
 
         this.updateImageLayout();
+
+        // Refresh display if in fullscreen to immediately show the direction change
+        if (this.fullscreenView.classList.contains('active')) {
+            this.showImage(tabData.currentIndex);
+        }
     }
 
     toggleDupFirst() {
