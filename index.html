@@ -211,30 +211,31 @@
         }
 
         .fullscreen-view {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
             z-index: 1000;
+            overflow: hidden; /* Prevent scrolling */
         }
 
         .fullscreen-view.active {
             display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .images-container {
             display: flex;
-            width: 100%;
-            height: 100%;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             gap: 0;
-            padding: 20px;
+            max-width: 100%;
+            max-height: 100%;
+            overflow: hidden; /* Prevent scrolling */
         }
 
         .fullscreen-image {
